@@ -1,0 +1,153 @@
+// =========================================================
+// Prisma Schema (MySQL)
+// =========================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// =========================================================
+// ENUMS
+// =========================================================
+
+enum UserRole {
+  ADMIN
+  CLIENT
+}
+
+enum ProjectCategory {
+  EDUCATION
+  RESIDENTIAL
+  HOSPITALITY
+  COMMERCIAL
+}
+
+enum ServiceType {
+  FLOORING
+  PAINTING
+  GYPSUM
+  CEILINGS
+  WALLS
+  LIGHTING
+  WOODWORK_JOINERY
+  KITCHENS
+  BATHROOMS
+  METAL_WORK
+  GLASS_WORK
+  FULL_INTERIOR_RENOVATION
+}
+
+// =========================================================
+// USERS
+// =========================================================
+
+model User {
+  id           BigInt   @id @default(autoincrement())
+  name         String   @db.VarChar(255)
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @map("password_hash") @db.Text
+  role         UserRole @default(CLIENT)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  testimonials Testimonial[]
+
+  @@map("users")
+}
+
+// =========================================================
+// PROJECTS
+// (status and project_date removed per request)
+// =========================================================
+
+model Project {
+  id            BigInt          @id @default(autoincrement())
+  title         String          @db.VarChar(255)
+  description   String?         @db.Text
+  category      ProjectCategory
+  // Note: Prisma does not support arrays of enums on MySQL,
+  // so service_types is kept as JSON (list of ServiceType values).
+  serviceTypes  Json            @default("[]") @map("service_types")
+  location      String?         @db.VarChar(255)
+  duration      String?         @db.VarChar(100)
+  isFeatured    Boolean         @default(false) @map("is_featured")
+  heroImageUrl  String?         @map("hero_image_url") @db.Text
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+
+  gallery      ProjectGallery[]
+  beforeAfters ProjectBeforeAfter[]
+
+  @@map("projects")
+}
+
+// =========================================================
+// PROJECT GALLERY
+// =========================================================
+
+model ProjectGallery {
+  id        BigInt   @id @default(autoincrement())
+  projectId BigInt   @map("project_id")
+  imageUrl  String   @map("image_url") @db.Text
+  caption   String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("project_gallery")
+}
+
+// =========================================================
+// PROJECT BEFORE / AFTER
+// =========================================================
+
+model ProjectBeforeAfter {
+  id             BigInt   @id @default(autoincrement())
+  projectId      BigInt   @map("project_id")
+  beforeImageUrl String   @map("before_image_url") @db.Text
+  afterImageUrl  String   @map("after_image_url") @db.Text
+  title          String?  @db.VarChar(255)
+  description    String?  @db.Text
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("project_before_after")
+}
+
+// =========================================================
+// FAQS
+// =========================================================
+
+model Faq {
+  id        BigInt   @id @default(autoincrement())
+  question  String   @db.Text
+  answer    String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("faqs")
+}
+
+// =========================================================
+// TESTIMONIALS
+// =========================================================
+
+model Testimonial {
+  id         BigInt   @id @default(autoincrement())
+  userId     BigInt   @map("user_id")
+  content    String   @db.Text
+  rating     Int?     @db.SmallInt
+  isFeatured Boolean  @default(false) @map("is_featured")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("testimonials")
+}
