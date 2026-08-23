@@ -5,10 +5,12 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { Prisma, User, UserStatus } from '@prisma/client';
+import { Prisma, User, UserRole, UserStatus } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserRepository } from './users.repository';
+import { AuthenticatedUserPayload } from '../auth/dto/auth.dto';
+import { PaginationQueryDto } from '../shared/dto/pagiantion.dto';
 
 const SALT_ROUNDS = 10;
 
@@ -31,7 +33,7 @@ export class UsersService {
         name: dto.name,
         email: dto.email,
         passwordHash,
-        role: dto.role,
+        role: UserRole.CLIENT,
       });
     } catch (error) {
       if (this.isUniqueEmailViolation(error)) {
@@ -41,20 +43,32 @@ export class UsersService {
     }
   }
 
-  async findAll(skip = 0, take = 20): Promise<PaginatedResult<User>> {
+  async findAll(query: PaginationQueryDto) {
     const where: Prisma.UserWhereInput = {};
 
     const [data, total] = await Promise.all([
       this.userRepository.findAll({
-        skip,
-        take,
+        skip: query.skip ?? 0,
+        take: 20,
         where,
         orderBy: { createdAt: 'desc' },
       }),
       this.userRepository.count({ where }),
     ]);
 
-    return { data, total, skip, take };
+    const totalPages = Math.ceil(total / query.limit) || 1;
+
+    return {
+      data,
+      meta: {
+        total,
+        page: query.page,
+        limit: query.limit,
+        totalPages,
+        hasNextPage: query.page < totalPages,
+        hasPreviousPage: query.page > 1,
+      },
+    };
   }
 
   async findByIdOrThrow(id: bigint): Promise<User> {
@@ -69,14 +83,13 @@ export class UsersService {
     return this.userRepository.findOneOrThrow({ email });
   }
 
-  async update(dto: UpdateUserDto , user : any): Promise<User> {
-    const userId = user.id
+  async update(dto: UpdateUserDto , user : AuthenticatedUserPayload): Promise<User> {
+    const userId = user.userId
     await this.userRepository.findOneOrThrow({ id : userId });
 
     const data: Prisma.UserUpdateInput = {
       name: dto.name,
-      email: dto.email,
-      role: dto.role,
+      email: dto.email
     };
 
     if (dto.password) {
