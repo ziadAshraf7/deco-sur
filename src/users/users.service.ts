@@ -61,7 +61,7 @@ export class UsersService {
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.userRepository.findOne({ email });
+    return this.userRepository.findOneOrThrow({ email });
   }
 
   async update(dto: UpdateUserDto , user : any): Promise<User> {
