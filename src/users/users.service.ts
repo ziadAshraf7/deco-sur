@@ -2,9 +2,10 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { Prisma, User } from '@prisma/client';
+import { Prisma, User, UserStatus } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserRepository } from './users.repository';
@@ -56,8 +57,12 @@ export class UsersService {
     return { data, total, skip, take };
   }
 
-  async findById(id: bigint): Promise<User> {
+  async findByIdOrThrow(id: bigint): Promise<User> {
     return this.userRepository.findOneOrThrow({ id });
+  }
+
+  async findById(id: bigint): Promise<User | null> {
+    return this.userRepository.findOne({ id });
   }
 
   async findByEmail(email: string): Promise<User | null> {
@@ -91,6 +96,12 @@ export class UsersService {
   async remove(id: bigint): Promise<User> {
     await this.userRepository.findOneOrThrow({ id });
     return this.userRepository.remove({ id });
+  }
+
+  async validateAndGetUser(userId : bigint) {
+   const user = await this.findByIdOrThrow(userId); 
+    if(user.status !== UserStatus.ACTIVE ) throw new UnauthorizedException("user is suspended")
+    return user;
   }
 
   async validateCredentials(

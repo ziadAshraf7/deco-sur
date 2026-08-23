@@ -46,14 +46,21 @@ enum ServiceType {
 // USERS
 // =========================================================
 
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
 model User {
-  id           BigInt   @id @default(autoincrement())
-  name         String   @db.VarChar(255)
-  email        String   @unique @db.VarChar(255)
-  passwordHash String   @map("password_hash") @db.Text
-  role         UserRole @default(CLIENT)
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  id           BigInt     @id @default(autoincrement())
+  name         String     @db.VarChar(255)
+  email        String     @unique @db.VarChar(255)
+  passwordHash String     @map("password_hash") @db.Text
+  role         UserRole   @default(CLIENT)
+  status       UserStatus @default(ACTIVE)
+
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
 
   testimonials Testimonial[]
 
