@@ -77,13 +77,11 @@ model Project {
   title         String          @db.VarChar(255)
   description   String?         @db.Text
   category      ProjectCategory
-  // Note: Prisma does not support arrays of enums on MySQL,
-  // so service_types is kept as JSON (list of ServiceType values).
   serviceTypes  Json            @default("[]") @map("service_types")
   location      String?         @db.VarChar(255)
   duration      String?         @db.VarChar(100)
   isFeatured    Boolean         @default(false) @map("is_featured")
-  heroImageUrl  String?         @map("hero_image_url") @db.Text
+  heroImageUrl  String          @map("hero_image_url") @db.Text
   createdAt     DateTime        @default(now()) @map("created_at")
   updatedAt     DateTime        @updatedAt @map("updated_at")
 

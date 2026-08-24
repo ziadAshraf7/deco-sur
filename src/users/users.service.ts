@@ -136,4 +136,43 @@ export class UsersService {
       (error.meta as { target: string[] }).target.includes('email')
     );
   }
+
+    async getUserStats() {
+    const [total, active, inactive, admins, clients] =
+      await Promise.all([
+        this.userRepository.count({}),
+
+        this.userRepository.count({
+          where: {
+            status: UserStatus.ACTIVE,
+          },
+        }),
+
+        this.userRepository.count({
+          where: {
+            status: UserStatus.SUSPENDED,
+          },
+        }),
+
+        this.userRepository.count({
+          where: {
+            role: UserRole.ADMIN,
+          },
+        }),
+
+        this.userRepository.count({
+          where: {
+            role: UserRole.CLIENT,
+          },
+        }),
+      ]);
+
+    return {
+      total,
+      active,
+      inactive,
+      admins,
+      clients,
+    };
+  }
 }
