@@ -36,21 +36,23 @@ function isPaginatedResult(payload: any): payload is PaginatedResult<any> {
   );
 }
 
-function serializeBigInt(value: any): any {
+function serializeResponse(value: any): any {
   if (typeof value === 'bigint') {
     return value.toString();
   }
 
   if (Array.isArray(value)) {
-    return value.map(serializeBigInt);
+    return value.map(serializeResponse);
   }
 
   if (value !== null && typeof value === 'object') {
     return Object.fromEntries(
-      Object.entries(value).map(([key, val]) => [
-        key,
-        serializeBigInt(val),
-      ]),
+      Object.entries(value)
+        .filter(([key]) => key !== 'passwordHash')
+        .map(([key, val]) => [
+          key,
+          serializeResponse(val),
+        ]),
     );
   }
 
@@ -78,14 +80,14 @@ export class TransformInterceptor<T>
         if (isPaginatedResult(payload)) {
           return {
             ...base,
-            data: serializeBigInt(payload.data) as T,
-            meta: serializeBigInt(payload.meta),
+            data: serializeResponse(payload.data) as T,
+            meta: serializeResponse(payload.meta),
           };
         }
 
         return {
           ...base,
-          data: serializeBigInt(payload) as T,
+          data: serializeResponse(payload) as T,
         };
       }),
     );
