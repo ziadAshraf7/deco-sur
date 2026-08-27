@@ -1,4 +1,3 @@
-// common/interceptors/transform.interceptor.ts
 import {
   CallHandler,
   ExecutionContext,
@@ -37,6 +36,27 @@ function isPaginatedResult(payload: any): payload is PaginatedResult<any> {
   );
 }
 
+function serializeBigInt(value: any): any {
+  if (typeof value === 'bigint') {
+    return value.toString();
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(serializeBigInt);
+  }
+
+  if (value !== null && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, val]) => [
+        key,
+        serializeBigInt(val),
+      ]),
+    );
+  }
+
+  return value;
+}
+
 @Injectable()
 export class TransformInterceptor<T>
   implements NestInterceptor<T, Response<T>>
@@ -58,12 +78,15 @@ export class TransformInterceptor<T>
         if (isPaginatedResult(payload)) {
           return {
             ...base,
-            data: payload.data as T,
-            meta: payload.meta,
+            data: serializeBigInt(payload.data) as T,
+            meta: serializeBigInt(payload.meta),
           };
         }
 
-        return { ...base, data: payload as T };
+        return {
+          ...base,
+          data: serializeBigInt(payload) as T,
+        };
       }),
     );
   }
