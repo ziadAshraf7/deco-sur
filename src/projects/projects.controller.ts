@@ -10,17 +10,38 @@ import {
   ParseIntPipe,
   HttpCode,
   HttpStatus,
+  UseInterceptors,
+  UploadedFile,
+  UploadedFiles,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
+  BadRequestException,
 } from '@nestjs/common';
-import { CreateBeforeAfterDto, CreateGalleryItemDto, CreateProjectDto } from './dto/create-project.dto';
-import { UpdateBeforeAfterDto, UpdateGalleryItemDto, UpdateProjectDto } from './dto/update-project.dto';
+import {
+  FileInterceptor,
+  FilesInterceptor,
+  FileFieldsInterceptor,
+} from '@nestjs/platform-express';
+import {
+  CreateBeforeAfterDto,
+  CreateGalleryItemDto,
+  CreateProjectDto,
+} from './dto/create-project.dto';
+import {
+  UpdateBeforeAfterDto,
+  UpdateGalleryItemDto,
+  UpdateProjectDto,
+} from './dto/update-project.dto';
 import { ProjectFilterDto } from './dto/project.query.dto';
 import { ProjectService } from './projects.service';
+import { IMAGE_FILE_SIZE_LIMIT, imageUploadOptions } from '../shared/files/multer.congif';
 
+const UPLOAD_PREFIX = '/uploads/projects';
 
 @Controller('projects')
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
-
 
   @Post()
   create(@Body() dto: CreateProjectDto) {
@@ -63,6 +84,26 @@ export class ProjectController {
     return this.projectService.remove(BigInt(id));
   }
 
+  // ---- Image upload ---------------------------------------------------
+  // Generic single-image upload. Use this to get a heroImageUrl before
+  // calling POST /projects, or whenever you just need "a URL for an image".
+
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file', imageUploadOptions))
+  uploadImage(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: IMAGE_FILE_SIZE_LIMIT }),
+          new FileTypeValidator({ fileType: /(jpg|jpeg|png|webp|gif)$/ }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    return { url: `${UPLOAD_PREFIX}/${file.filename}` };
+  }
+
   // ---- Gallery -------------------------------------------------------
 
   @Post(':id/gallery')
@@ -70,6 +111,28 @@ export class ProjectController {
     @Param('id', ParseIntPipe) id: number,
     @Body() items: CreateGalleryItemDto[],
   ) {
+    return this.projectService.addGalleryImages(BigInt(id), items);
+  }
+
+  @Post(':id/gallery/upload')
+  @UseInterceptors(FilesInterceptor('files', 10, imageUploadOptions))
+  uploadGalleryImages(
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFiles(
+      new ParseFilePipe({
+        validators: [new MaxFileSizeValidator({ maxSize: IMAGE_FILE_SIZE_LIMIT })],
+      }),
+    )
+    files: Express.Multer.File[],
+  ) {
+    if (!files?.length) {
+      throw new BadRequestException('At least one image file is required');
+    }
+
+    const items: CreateGalleryItemDto[] = files.map((file) => ({
+      imageUrl: `${UPLOAD_PREFIX}/${file.filename}`,
+    }));
+
     return this.projectService.addGalleryImages(BigInt(id), items);
   }
 
@@ -87,7 +150,6 @@ export class ProjectController {
     return this.projectService.removeGalleryImage(BigInt(galleryId));
   }
 
-  // ---- Before / After --------------------------------------------------
 
   @Post(':id/before-after')
   addBeforeAfter(
@@ -95,6 +157,36 @@ export class ProjectController {
     @Body() dto: CreateBeforeAfterDto,
   ) {
     return this.projectService.addBeforeAfter(BigInt(id), dto);
+  }
+
+  @Post(':id/before-after/upload')
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        { name: 'before', maxCount: 1 },
+        { name: 'after', maxCount: 1 },
+      ],
+      imageUploadOptions,
+    ),
+  )
+  uploadBeforeAfter(
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFiles()
+    files: { before?: Express.Multer.File[]; after?: Express.Multer.File[] },
+    @Body() dto: Partial<Pick<CreateBeforeAfterDto, 'title' | 'description'>>,
+  ) {
+    const beforeFile = files?.before?.[0];
+    const afterFile = files?.after?.[0];
+
+    if (!beforeFile || !afterFile) {
+      throw new BadRequestException('Both "before" and "after" images are required');
+    }
+
+    return this.projectService.addBeforeAfter(BigInt(id), {
+      ...dto,
+      beforeImageUrl: `${UPLOAD_PREFIX}/${beforeFile.filename}`,
+      afterImageUrl: `${UPLOAD_PREFIX}/${afterFile.filename}`,
+    });
   }
 
   @Patch('before-after/:itemId')
