@@ -13,13 +13,17 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async validateUser(email: string, pass: string) : Promise<AuthenticatedUserPayload> {
-    const user = await this.usersService.findByEmail(email);
-    if (user && (await bcrypt.compare(pass, user.passwordHash))) {
-      const { passwordHash , createdAt , updatedAt , id, ...result } = user;
-      return {userId : id , ...result};
+  async validateUser(email: string, pass: string): Promise<AuthenticatedUserPayload> {
+    const user = await this.usersService.findByEmailOrThrow(email);
+
+    const isMatch = await bcrypt.compare(pass, user!.passwordHash);
+
+    if (!user || !isMatch) {
+      throw new UnauthorizedException('Invalid credentials');
     }
-    throw new UnauthorizedException('Invalid credentials');
+
+    const { passwordHash, createdAt, updatedAt, id, ...result } = user;
+    return { userId: id, ...result };
   }
 
   async login(dto: LoginDto) {

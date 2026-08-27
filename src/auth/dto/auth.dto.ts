@@ -4,7 +4,6 @@ import { IsEmail, isNotEmpty, IsNotEmpty, Matches, MaxLength, Min, MinLength } f
 
 export class AuthenticatedUserPayload {
     userId! : bigint
-    name! : string 
     email! : string 
     role! : UserRole
 }

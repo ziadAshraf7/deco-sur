@@ -79,8 +79,12 @@ export class UsersService {
     return this.userRepository.findOne({ id });
   }
 
-  async findByEmail(email: string): Promise<User | null> {
+  async findByEmailOrThrow(email: string): Promise<User | null> {
     return this.userRepository.findOneOrThrow({ email });
+  }
+
+  async findByEmail(email: string): Promise<User | null> {
+    return this.userRepository.findOne({ email });
   }
 
   async update(dto: UpdateUserDto , user : AuthenticatedUserPayload): Promise<User> {
