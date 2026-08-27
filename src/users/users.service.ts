@@ -1,7 +1,5 @@
 import {
-  ConflictException,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
@@ -28,19 +26,13 @@ export class UsersService {
   async create(dto: CreateUserDto): Promise<User> {
     const passwordHash = await bcrypt.hash(dto.password, SALT_ROUNDS);
 
-    try {
-      return await this.userRepository.create({
+    return await this.userRepository.create({
         name: dto.name,
         email: dto.email,
         passwordHash,
         role: UserRole.CLIENT,
-      });
-    } catch (error) {
-      if (this.isUniqueEmailViolation(error)) {
-        throw new ConflictException('A user with this email already exists');
-      }
-      throw error;
-    }
+    });
+  
   }
 
   async findAll(query: PaginationQueryDto) {
@@ -100,14 +92,7 @@ export class UsersService {
       data.passwordHash = await bcrypt.hash(dto.password, SALT_ROUNDS);
     }
 
-    try {
-      return await this.userRepository.update({ where: { id : userId }, data });
-    } catch (error) {
-      if (this.isUniqueEmailViolation(error)) {
-        throw new ConflictException('A user with this email already exists');
-      }
-      throw error;
-    }
+    return await this.userRepository.update({ where: { id : userId }, data });   
   }
 
   async remove(id: bigint): Promise<User> {
@@ -132,14 +117,6 @@ export class UsersService {
     return isValid ? user : null;
   }
 
-  private isUniqueEmailViolation(error: unknown): boolean {
-    return (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === 'P2002' &&
-      Array.isArray((error.meta as { target?: string[] })?.target) &&
-      (error.meta as { target: string[] }).target.includes('email')
-    );
-  }
 
     async getUserStats() {
     const [total, active, inactive, admins, clients] =

@@ -35,7 +35,7 @@ export class AuthService {
   }
 
    private generateToken(payload : AuthenticatedUserPayload) {
-    return this.jwtService.sign(payload);
+    return this.jwtService.sign({...payload , userId : Number(payload.userId)});
    }
 
   async signup(dto: RegisterDto) {

@@ -3,59 +3,45 @@ import {
   Controller,
   Delete,
   Get,
-  Param,
   Patch,
-  Post,
-  Query,
 } from '@nestjs/common';
+
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { PaginationQueryDto } from '../shared/dto/pagiantion.dto';
 import { AuthenticatedUserPayload } from '../auth/dto/auth.dto';
 import { CurrentUser } from '../shared/decerators/current_user.decerator';
-
-
+import { Auth } from '../shared/guards/auth.decerator';
 
 @Controller('users')
+@Auth('CLIENT')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+  ) {}
 
 
-  @Post()
-  create(@Body() dto: CreateUserDto) {
-    return this.usersService.create(dto);
+  @Get('')
+  findMe(
+    @CurrentUser() user: AuthenticatedUserPayload,
+  ) {
+    return this.usersService.findByIdOrThrow(
+      BigInt(user.userId),
+    );
   }
 
-
-  @Get()
-  findAll(@Query() query: PaginationQueryDto) {
-    return this.usersService.findAll(query);
-  }
-
-
-  @Get('stats')
-  getStats() {
-    return this.usersService.getUserStats();
-  }
-
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findByIdOrThrow(BigInt(id));
-  }
-
-
-  @Patch()
-  update(
+  @Patch('')
+  updateMe(
     @Body() dto: UpdateUserDto,
     @CurrentUser() user: AuthenticatedUserPayload,
   ) {
     return this.usersService.update(dto, user);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(BigInt(id));
+  @Delete('')
+  deleteMe(
+    @CurrentUser() user : AuthenticatedUserPayload
+  ){
+    return this.usersService.remove(user.userId)
   }
+
 }
