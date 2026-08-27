@@ -1,8 +1,56 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, HttpAdapterHost } from '@nestjs/core';
+import { ValidationPipe, VersioningType, Logger } from '@nestjs/common';
+import helmet from 'helmet';
+import compression from 'compression';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
+import { TransformInterceptor } from './shared/interceptors/response.interceptor';
+import { AllExceptionsFilter } from './shared/exceptions/all.exceptions.filter';
+import { LoggingInterceptor } from './shared/logger/logger.interceptor';
+
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  await app.listen(process.env.PORT ?? 8000);
+  const logger = new Logger('Bootstrap');
+
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    bufferLogs: true,
+  });
+
+  app.use(helmet());
+
+  app.use(compression());
+
+  app.enableCors({
+    origin: process.env.CORS_ORIGIN?.split(',') ?? '*',
+    credentials: true,
+  });
+
+  app.setGlobalPrefix('api');
+  app.enableVersioning({
+    type: VersioningType.URI,
+    defaultVersion: '1',
+  });
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,           
+      forbidNonWhitelisted: true, 
+      transform: true,            
+      transformOptions: { enableImplicitConversion: true },
+    }),
+  );
+
+  const httpAdapterHost = app.get(HttpAdapterHost);
+  app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
+
+  app.useGlobalInterceptors(new LoggingInterceptor() , new TransformInterceptor());
+
+  app.enableShutdownHooks();
+
+  const port = process.env.PORT ?? 8000;
+  await app.listen(port);
+  logger.log(`🚀 Application running on: http://localhost:${port}`);
+  logger.log(`📚 Swagger docs available at: http://localhost:${port}/docs`);
 }
+
 bootstrap();

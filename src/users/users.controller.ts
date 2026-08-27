@@ -46,7 +46,7 @@ export class UsersController {
   }
 
 
-  @Patch('me')
+  @Patch()
   update(
     @Body() dto: UpdateUserDto,
     @CurrentUser() user: AuthenticatedUserPayload,

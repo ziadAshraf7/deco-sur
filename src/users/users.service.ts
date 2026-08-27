@@ -45,7 +45,7 @@ export class UsersService {
 
   async findAll(query: PaginationQueryDto) {
     const where: Prisma.UserWhereInput = {};
-
+    console.log(query.page)
     const [data, total] = await Promise.all([
       this.userRepository.findAll({
         skip: query.skip ?? 0,
