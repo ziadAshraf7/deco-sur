@@ -12,12 +12,14 @@ import { FaqService } from './faq.service';
 import { UpdateFaqDto } from './dto/update-faq.dto';
 import { QueryFaqDto } from './dto/query-faq.dto';
 import { CreateFaqDto } from './dto/create-faq.dto';
+import { Auth } from '../shared/guards/auth.decerator';
 
 @Controller('faqs')
 export class FaqController {
   constructor(private readonly faqService: FaqService) {}
 
   @Post()
+  @Auth("ADMIN")
   create(@Body() dto: CreateFaqDto) {
     return this.faqService.create(dto);
   }
@@ -38,11 +40,13 @@ export class FaqController {
   }
 
   @Patch(':id')
+  @Auth("ADMIN")
   update(@Param('id') id: string, @Body() dto: UpdateFaqDto) {
     return this.faqService.update(BigInt(id), dto);
   }
 
   @Delete(':id')
+  @Auth("ADMIN")
   remove(@Param('id') id: string) {
     return this.faqService.remove(BigInt(id));
   }
