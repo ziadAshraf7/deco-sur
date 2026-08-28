@@ -11,15 +11,12 @@ import {
 } from 'class-validator';
 
 export class CreateTestimonialDto {
-  // BigInt IDs travel as numeric strings over JSON; converted to BigInt in the service.
-  @IsNumberString()
-  @IsNotEmpty()
-  userId: string;
+
 
   @IsString()
   @IsNotEmpty()
   @MaxLength(5000)
-  content: string;
+  content!: string;
 
   @IsOptional()
   @IsInt()

@@ -4,27 +4,27 @@ import { TestimonialRepository } from './testimonial.repository';
 import { CreateTestimonialDto } from './dto/create-testimonial.dto';
 import { UpdateTestimonialDto } from './dto/update-testimonial.dto';
 import { QueryTestimonialDto } from './dto/query-testimonial.dto';
+import { AuthenticatedUserPayload } from '../auth/dto/auth.dto';
 
 @Injectable()
 export class TestimonialService {
   constructor(private readonly testimonialRepository: TestimonialRepository) {}
 
-  async create(dto: CreateTestimonialDto) {
+  async create(dto: CreateTestimonialDto , user : AuthenticatedUserPayload) {
     return this.testimonialRepository.create({
       content: dto.content,
       rating: dto.rating,
       isFeatured: dto.isFeatured ?? false,
       user: {
-        connect: { id: BigInt(dto.userId) },
+        connect: { id: BigInt(user.userId) },
       },
     });
   }
 
-  async findAll(query: QueryTestimonialDto) {
+  async findAll(query: QueryTestimonialDto , user? : AuthenticatedUserPayload) {
     const {
       page = 1,
       limit = 10,
-      userId,
       isFeatured,
       minRating,
       search,
@@ -34,7 +34,7 @@ export class TestimonialService {
 
     const where: Prisma.TestimonialWhereInput = {
       isApproved: true,
-      ...(userId && { userId: BigInt(userId) }),
+      ...(user && { userId: BigInt(user.userId) }),
       ...(isFeatured !== undefined && { isFeatured }),
       ...(minRating && { rating: { gte: minRating } }),
       ...(search && {

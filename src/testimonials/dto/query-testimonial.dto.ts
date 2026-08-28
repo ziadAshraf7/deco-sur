@@ -25,10 +25,6 @@ export class QueryTestimonialDto {
   limit?: number = 10;
 
   @IsOptional()
-  @IsNumberString()
-  userId?: string;
-
-  @IsOptional()
   @Type(() => Boolean)
   @IsBoolean()
   isFeatured?: boolean;
