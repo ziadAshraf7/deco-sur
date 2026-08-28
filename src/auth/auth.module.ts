@@ -5,6 +5,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { AuthGuard } from '../shared/guards/auth.guard';
 import { AuthController } from './auth.controller';
 
+const JWT_EXPIRES_IN_SECONDS = Number(process.env.JWT_EXPIRES_IN) || 604800;
+
 @Module({
   controllers: [AuthController],
   providers: [AuthService , AuthGuard],
@@ -12,7 +14,7 @@ import { AuthController } from './auth.controller';
     forwardRef(() => UsersModule), 
     JwtModule.register({
       secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '1d' },
+      signOptions: { expiresIn: JWT_EXPIRES_IN_SECONDS },
     })
   ],
   exports: [AuthGuard, JwtModule]

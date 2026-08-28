@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { NestFactory, HttpAdapterHost } from '@nestjs/core';
 import { ValidationPipe, VersioningType, Logger } from '@nestjs/common';
 import helmet from 'helmet';
