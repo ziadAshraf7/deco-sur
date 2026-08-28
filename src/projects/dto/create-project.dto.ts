@@ -27,7 +27,7 @@ function parseIfString(value: unknown) {
 export class CreateProjectDto {
   @IsString()
   @IsNotEmpty()
-  @MinLength(20)
+  @MinLength(2)
   @MaxLength(255)
   title!: string;
 
@@ -77,11 +77,22 @@ export class CreateProjectDto {
   beforeAftersImages?: CreateBeforeAfterDto[];
 }
 
-export class CreateGalleryItemDto {
 
+export class CreateGalleryItemDto {
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
-  imageUrl!: string;
+  imageUrl?: string; 
+
+  @IsOptional()
+  @IsString()
+  caption?: string;
+}
+
+export class AddGalleryItemDto {
+  @IsString()
+  @IsNotEmpty()
+  imageUrl!: string; 
 
   @IsOptional()
   @IsString()
@@ -89,14 +100,36 @@ export class CreateGalleryItemDto {
 }
 
 export class CreateBeforeAfterDto {
-
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
-  beforeImageUrl!: string;
+  beforeImageUrl?: string; 
 
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
-  afterImageUrl!: string;
+  afterImageUrl?: string; 
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  title?: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+}
+
+export class AddBeforeAfterDto {
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  beforeImageUrl!: string; 
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  afterImageUrl!: string; 
 
   @IsOptional()
   @IsString()

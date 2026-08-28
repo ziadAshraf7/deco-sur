@@ -1,8 +1,13 @@
-import { PartialType } from '@nestjs/mapped-types';
+import { OmitType, PartialType } from '@nestjs/mapped-types';
 import { CreateBeforeAfterDto, CreateGalleryItemDto, CreateProjectDto } from './create-project.dto';
 
-export class UpdateProjectDto extends PartialType(CreateProjectDto) {}
-
+export class UpdateProjectDto extends PartialType(
+  OmitType(CreateProjectDto, [
+    'heroImageUrl',
+    'gallery',
+    'beforeAftersImages',
+  ] as const),
+) {}
 
 export class UpdateBeforeAfterDto extends PartialType(CreateBeforeAfterDto) {}
 
