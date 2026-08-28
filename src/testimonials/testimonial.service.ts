@@ -7,9 +7,7 @@ import { QueryTestimonialDto } from './dto/query-testimonial.dto';
 
 @Injectable()
 export class TestimonialService {
-  constructor(
-    private readonly testimonialRepository: TestimonialRepository,
-  ) {}
+  constructor(private readonly testimonialRepository: TestimonialRepository) {}
 
   async create(dto: CreateTestimonialDto) {
     return this.testimonialRepository.create({
@@ -35,6 +33,7 @@ export class TestimonialService {
     } = query;
 
     const where: Prisma.TestimonialWhereInput = {
+      isApproved: true,
       ...(userId && { userId: BigInt(userId) }),
       ...(isFeatured !== undefined && { isFeatured }),
       ...(minRating && { rating: { gte: minRating } }),
@@ -65,19 +64,25 @@ export class TestimonialService {
   }
 
   async findOne(id: bigint) {
-    return this.testimonialRepository.findOneOrThrow({ id });
+    const testimonial = await this.testimonialRepository.findOneOrThrow({ id });
+
+    if (!testimonial.isApproved) {
+      throw new ForbiddenException('Testimonial is not approved');
+    }
+
+    return testimonial;
   }
 
   async findByUser(userId: bigint) {
     return this.testimonialRepository.findAll({
-      where: { userId },
+      where: { userId, isApproved: true },
       orderBy: { createdAt: 'desc' },
     });
   }
 
   async findFeatured(limit = 10) {
     return this.testimonialRepository.findAll({
-      where: { isFeatured: true },
+      where: { isFeatured: true, isApproved: true },
       take: limit,
       orderBy: { createdAt: 'desc' },
     });
@@ -113,27 +118,31 @@ export class TestimonialService {
     return this.testimonialRepository.remove({ id });
   }
 
-async getAverageRating(userId?: bigint) {
-  const args = {
-    where: userId ? { userId } : undefined,
-    _avg: {
-      rating: true,
-    },
-    _count: {
-      rating: true,
-    },
-  } satisfies Prisma.TestimonialAggregateArgs;
+  async getAverageRating(userId?: bigint) {
+    const args = {
+      where: { isApproved: true, ...(userId ? { userId } : {}) },
+      _avg: {
+        rating: true,
+      },
+      _count: {
+        rating: true,
+      },
+    } satisfies Prisma.TestimonialAggregateArgs;
 
-  const result = await this.testimonialRepository.aggregate(args);
+    const result = await this.testimonialRepository.aggregate(args);
 
-  return {
-    average: result._avg?.rating ?? 0,
-    count: (result._count as Prisma.TestimonialCountAggregateInputType).rating ?? 0,
-  };
-}
+    return {
+      average: result._avg?.rating ?? 0,
+      count:
+        (result._count as Prisma.TestimonialCountAggregateInputType).rating ??
+        0,
+    };
+  }
 
   async countByUser(userId: bigint) {
-    return this.testimonialRepository.count({ where: { userId } });
+    return this.testimonialRepository.count({
+      where: { userId, isApproved: true },
+    });
   }
 
   private async assertOwnership(
