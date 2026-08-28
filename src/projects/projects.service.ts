@@ -31,6 +31,7 @@ export class ProjectService {
       ...(gallery?.length && {
         gallery: { create: gallery.map((item) => ({ ...item })) },
       }),
+      ...({heroImageUrl : dto.heroImageUrl!}),
       ...(beforeAfters?.length && {
         beforeAfters: { create: beforeAfters.map((item) => ({ ...item })) },
       }),
@@ -104,8 +105,10 @@ export class ProjectService {
       ...(serviceTypes && {
         serviceTypes: serviceTypes as unknown as Prisma.InputJsonValue,
       }),
-      ...(gallery ?? {gallery : {create : gallery}}) , 
-      ...(beforeAftersImages ?? {beforeAfters : {create : beforeAftersImages}}) 
+      ...(gallery?.length && { gallery: { create: gallery } }),
+      ...(beforeAftersImages?.length && {
+        beforeAfters: { create: beforeAftersImages },
+      }),
     };
 
     await this.projectRepository.update({ where: { id }, data });

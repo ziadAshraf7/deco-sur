@@ -4,7 +4,7 @@ import { UsersController } from './users.controller';
 import { UserRepository } from './users.repository';
 import { AdminUsersService } from './admin.service';
 import { AuthModule } from '../auth/auth.module';
-import { AdminUsersController } from './admin.controller';
+import { AdminUsersController } from './users.admin.controller';
 
 @Module({
   controllers: [UsersController , AdminUsersController],
