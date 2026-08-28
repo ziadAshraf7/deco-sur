@@ -15,9 +15,7 @@ export class AuthService {
 
   async validateUser(email: string, pass: string): Promise<AuthenticatedUserPayload> {
     const user = await this.usersService.findByEmailOrThrow(email);
-
     const isMatch = await bcrypt.compare(pass, user!.passwordHash);
-
     if (!user || !isMatch) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -39,16 +37,11 @@ export class AuthService {
    }
 
   async signup(dto: RegisterDto) {
-    const passwordHash = await bcrypt.hash(
-      dto.password,
-      10
-    );
-
     try {
       const user = await this.usersService.create({
         name: dto.name,
         email: dto.email,
-        password : passwordHash ,
+        password: dto.password,
       });
 
       const { passwordHash: _, createdAt, updatedAt, id, ...result } = user;

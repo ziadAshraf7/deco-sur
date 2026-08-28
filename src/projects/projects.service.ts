@@ -31,6 +31,7 @@ export class ProjectService {
       ...(gallery?.length && {
         gallery: { create: gallery.map((item) => ({ ...item })) },
       }),
+      slug: dto.title.toLowerCase().trim().replace(/\s+/g, '-'),
       ...({heroImageUrl : dto.heroImageUrl!}),
       ...(beforeAfters?.length && {
         beforeAfters: { create: beforeAfters.map((item) => ({ ...item })) },

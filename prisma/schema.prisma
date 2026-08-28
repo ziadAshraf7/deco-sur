@@ -75,6 +75,7 @@ model User {
 model Project {
   id            BigInt          @id @default(autoincrement())
   title         String          @db.VarChar(255)
+  slug          String          @unique @db.VarChar(255) @default("slug")
   description   String?         @db.Text
   category      ProjectCategory
   serviceTypes  Json            @default("[]") @map("service_types")
@@ -85,8 +86,8 @@ model Project {
   createdAt     DateTime        @default(now()) @map("created_at")
   updatedAt     DateTime        @updatedAt @map("updated_at")
 
-  gallery      ProjectGallery[]
-  beforeAfters ProjectBeforeAfter[]
+  gallery       ProjectGallery[]
+  beforeAfters  ProjectBeforeAfter[]
 
   @@map("projects")
 }
