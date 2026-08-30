@@ -20,7 +20,7 @@ export class AdminUsersService {
     });
 
     if (user.status === UserStatus.ACTIVE) {
-      throw new BadRequestException('User is already active');
+      throw new BadRequestException('messages.userAlreadyActive');
     }
 
     return this.userRepository.update({
@@ -40,7 +40,7 @@ export class AdminUsersService {
     });
 
     if (user.status === UserStatus.SUSPENDED) {
-      throw new BadRequestException('User is already inactive');
+      throw new BadRequestException('messages.userAlreadyInactive');
     }
 
     return this.userRepository.update({

@@ -76,7 +76,7 @@ export class ProjectAdminController {
     const baseUrl = UPLOAD_PREFIX;
 
     if (!files.heroImageUrl?.length) {
-      throw new BadRequestException('heroImageUrl file is required');
+      throw new BadRequestException('messages.heroImageRequired');
     }
     dto.heroImageUrl = `${baseUrl}/${files.heroImageUrl[0].filename}`;
 
@@ -90,7 +90,7 @@ export class ProjectAdminController {
     if (files.beforeAftersImages?.length) {
       if (files.beforeAftersImages.length % 2 !== 0) {
         throw new BadRequestException(
-          'beforeAftersImages must contain an even number of files (before/after pairs)',
+          'messages.beforeAfterEvenFiles',
         );
       }
 
@@ -153,13 +153,13 @@ export class ProjectAdminController {
     } else {
       if (!dto.gallery?.length) {
         throw new BadRequestException(
-          'Provide image files or a gallery array with imageUrl values',
+          'messages.galleryInputRequired',
         );
       }
       items = dto.gallery.map((item) => {
         if (!item.imageUrl) {
           throw new BadRequestException(
-            'Each gallery item must have an imageUrl when no files are uploaded',
+            'messages.galleryImageUrlRequired',
           );
         }
         return item as CreateGalleryItemDto;
@@ -182,7 +182,7 @@ export class ProjectAdminController {
     files: Express.Multer.File[],
   ) {
     if (!files?.length) {
-      throw new BadRequestException('At least one image file is required');
+      throw new BadRequestException('messages.imageFileRequired');
     }
 
     const items: CreateGalleryItemDto[] = files.map((file) => ({
@@ -239,7 +239,7 @@ export class ProjectAdminController {
 
     if (!beforeImageUrl || !afterImageUrl) {
       throw new BadRequestException(
-        'Both a before and after image (file or URL) are required',
+        'messages.beforeAfterImagesRequired',
       );
     }
 

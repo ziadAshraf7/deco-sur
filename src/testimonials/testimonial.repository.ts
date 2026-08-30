@@ -61,7 +61,7 @@ export class TestimonialRepository {
     });
 
     if (!record) {
-      throw new NotFoundException('Testimonial not found');
+      throw new NotFoundException('messages.testimonialNotFound');
     }
 
     return record;

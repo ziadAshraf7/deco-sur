@@ -16,12 +16,12 @@ export class AuthService {
     const user = await this.usersService.findByEmailOrThrow(email);
 
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('messages.invalidCredentials');
     }
 
     const isMatch = await bcrypt.compare(pass, user.passwordHash);
     if (!isMatch) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('messages.invalidCredentials');
     }
 
     const { passwordHash, createdAt, updatedAt, id, ...result } = user;
@@ -54,7 +54,7 @@ export class AuthService {
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === 'P2002'
       ) {
-        throw new ConflictException('Email already exists');
+        throw new ConflictException('messages.emailExists');
       }
 
       throw error;
@@ -70,12 +70,12 @@ export class AuthService {
         secret: process.env.JWT_REFRESH_SECRET,
       });
     } catch {
-      throw new UnauthorizedException('Invalid or expired refresh token');
+      throw new UnauthorizedException('messages.invalidRefreshToken');
     }
 
     const user = await this.usersService.findByEmailOrThrow(decoded.email);
     if (!user) {
-      throw new UnauthorizedException('Invalid or expired refresh token');
+      throw new UnauthorizedException('messages.invalidRefreshToken');
     }
 
     const { passwordHash, createdAt, updatedAt, id, ...result } = user;

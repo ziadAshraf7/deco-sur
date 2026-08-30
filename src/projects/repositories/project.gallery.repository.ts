@@ -55,7 +55,7 @@ export class ProjectGalleryRepository {
     const record = await client.projectGallery.findUnique({ where });
 
     if (!record) {
-      throw new NotFoundException('Gallery image not found');
+      throw new NotFoundException('messages.galleryImageNotFound');
     }
 
     return record;

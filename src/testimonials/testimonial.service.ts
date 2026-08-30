@@ -67,7 +67,7 @@ export class TestimonialService {
     const testimonial = await this.testimonialRepository.findOneOrThrow({ id });
 
     if (!testimonial.isApproved) {
-      throw new ForbiddenException('Testimonial is not approved');
+      throw new ForbiddenException('messages.testimonialNotApproved');
     }
 
     return testimonial;
@@ -153,7 +153,7 @@ export class TestimonialService {
     const existing = await this.testimonialRepository.findOneOrThrow({ id });
 
     if (existing.userId !== requesterId) {
-      throw new ForbiddenException(`You cannot ${action} this testimonial`);
+      throw new ForbiddenException(`messages.cannot${action === 'edit' ? 'Edit' : 'Delete'}Testimonial`);
     }
   }
 }

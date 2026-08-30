@@ -26,7 +26,7 @@ export class LoginDto {
 export class RegisterDto {
     @IsNotEmpty()
     @MaxLength(50 , {
-        message : "name should not exceed 50 chars"
+        message : 'messages.nameTooLong'
     })
     name! : string 
     
@@ -36,11 +36,11 @@ export class RegisterDto {
     
 
     @MinLength(8, {
-    message: 'Password must be at least 8 characters long',
+    message: 'messages.passwordTooShort',
     })
     @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).+$/, {
     message:
-        'Password must contain at least one uppercase letter, one lowercase letter, and one special character',
+        'messages.passwordNeedsComplexity',
     })
     password! : string 
 

@@ -68,7 +68,7 @@ export class UserRepository {
     });
 
     if (!record) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('messages.recordNotFound');
     }
 
     return record;

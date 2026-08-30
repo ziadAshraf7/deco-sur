@@ -26,7 +26,7 @@ export class AuthGuard implements CanActivate {
     const roles = this.getClassAndHandlerMetaData(context , "roles") as UserRole[]
     
     if (!token) {
-      throw new UnauthorizedException('No token provided');
+      throw new UnauthorizedException('messages.noToken');
     }
 
     try {
@@ -69,7 +69,7 @@ private async validateUserAccess(
   const user = await this.userService.validateAndGetUser(userId);
 
   if (!this.checkUserRole(userRole, roles)) {
-    throw new ForbiddenException('You do not have permission to access this resource');
+    throw new ForbiddenException('messages.forbidden');
   }
 
   return user;

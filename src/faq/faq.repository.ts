@@ -56,7 +56,7 @@ export class FaqRepository {
     });
 
     if (!record) {
-      throw new NotFoundException('Faq not found');
+      throw new NotFoundException('messages.faqNotFound');
     }
 
     return record;

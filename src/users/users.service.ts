@@ -102,7 +102,7 @@ export class UsersService {
 
   async validateAndGetUser(userId : bigint) {
    const user = await this.findByIdOrThrow(userId); 
-    if(user.status !== UserStatus.ACTIVE ) throw new UnauthorizedException("user is suspended")
+    if(user.status !== UserStatus.ACTIVE ) throw new UnauthorizedException('messages.userSuspended')
     return user;
   }
 

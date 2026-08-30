@@ -55,7 +55,7 @@ export class ProjectBeforeAfterRepository {
     const record = await client.projectBeforeAfter.findUnique({ where });
 
     if (!record) {
-      throw new NotFoundException('Before/after entry not found');
+      throw new NotFoundException('messages.beforeAfterNotFound');
     }
 
     return record;

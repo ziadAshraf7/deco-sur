@@ -18,9 +18,13 @@ export const imageUploadOptions: MulterOptions = {
   fileFilter: (_req, file, callback) => {
     if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
       return callback(
-        new BadRequestException(
-          `Unsupported file type: ${file.mimetype}. Allowed: ${ALLOWED_MIME_TYPES.join(', ')}`,
-        ),
+        new BadRequestException({
+          message: 'messages.unsupportedFileType',
+          args: {
+            type: file.mimetype,
+            allowed: ALLOWED_MIME_TYPES.join(', '),
+          },
+        }),
         false,
       );
     }

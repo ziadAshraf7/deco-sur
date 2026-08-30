@@ -68,7 +68,7 @@ export class ProjectRepository {
     });
 
     if (!record) {
-      throw new NotFoundException('Project not found');
+      throw new NotFoundException('messages.projectNotFound');
     }
 
     return record;

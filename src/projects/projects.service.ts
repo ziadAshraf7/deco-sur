@@ -198,7 +198,7 @@ async addGalleryImages(
   items: CreateGalleryItemDto[],
 ) {
   if (!items.length) {
-    throw new BadRequestException('At least one gallery item is required');
+    throw new BadRequestException('messages.galleryItemRequired');
   }
 
   await this.projectRepository.findOneOrThrow({ id: projectId });
