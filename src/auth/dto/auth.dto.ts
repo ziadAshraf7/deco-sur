@@ -1,11 +1,17 @@
 import { UserRole } from "@prisma/client"
-import { IsEmail, isNotEmpty, IsNotEmpty, Matches, MaxLength, Min, MinLength } from "class-validator"
+import { IsEmail, isNotEmpty, IsNotEmpty, IsString, Matches, MaxLength, Min, MinLength } from "class-validator"
 
 
 export class AuthenticatedUserPayload {
     userId! : bigint
     email! : string 
     role! : UserRole
+}
+
+export class RefreshTokenDto {
+  @IsString()
+  @IsNotEmpty()
+  refreshToken!: string;
 }
 
 export class LoginDto {

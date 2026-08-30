@@ -1,9 +1,8 @@
-// auth.service.ts
 import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
-import { AuthenticatedUserPayload, LoginDto, RegisterDto } from './dto/auth.dto';
+import { AuthenticatedUserPayload, LoginDto, RegisterDto, RefreshTokenDto } from './dto/auth.dto';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
@@ -15,8 +14,13 @@ export class AuthService {
 
   async validateUser(email: string, pass: string): Promise<AuthenticatedUserPayload> {
     const user = await this.usersService.findByEmailOrThrow(email);
-    const isMatch = await bcrypt.compare(pass, user!.passwordHash);
-    if (!user || !isMatch) {
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const isMatch = await bcrypt.compare(pass, user.passwordHash);
+    if (!isMatch) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -25,16 +29,9 @@ export class AuthService {
   }
 
   async login(dto: LoginDto) {
-      const userPayload = await this.validateUser(dto.email , dto.password)
-      const accessToken = this.generateToken(userPayload)
-      return {
-        access_token : accessToken
-      }
+    const userPayload = await this.validateUser(dto.email, dto.password);
+    return this.generateTokens(userPayload);
   }
-
-   private generateToken(payload : AuthenticatedUserPayload) {
-    return this.jwtService.sign({...payload , userId : Number(payload.userId)});
-   }
 
   async signup(dto: RegisterDto) {
     try {
@@ -51,7 +48,7 @@ export class AuthService {
         ...result,
       };
 
-      return userPayload
+      return userPayload;
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -64,4 +61,57 @@ export class AuthService {
     }
   }
 
+
+  async refreshTokens(dto: RefreshTokenDto) {
+    let decoded: AuthenticatedUserPayload & { userId: number };
+
+    try {
+      decoded = this.jwtService.verify(dto.refreshToken, {
+        secret: process.env.JWT_REFRESH_SECRET,
+      });
+    } catch {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+
+    const user = await this.usersService.findByEmailOrThrow(decoded.email);
+    if (!user) {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+
+    const { passwordHash, createdAt, updatedAt, id, ...result } = user;
+    const userPayload: AuthenticatedUserPayload = { userId: id, ...result };
+
+    return this.generateTokens(userPayload);
+  }
+
+  private generateTokens(payload: AuthenticatedUserPayload) {
+    const accessToken = this.generateAccessToken(payload);
+    const refreshToken = this.generateRefreshToken(payload);
+
+    return {
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    };
+  }
+
+  private generateAccessToken(payload: AuthenticatedUserPayload) {
+    return this.jwtService.sign(
+      { ...payload, userId: Number(payload.userId) },
+      {
+        secret: process.env.JWT_SECRET,
+        expiresIn: (process.env.JWT_ACCESS_EXPIRES_IN as unknown as any) ?? '15m',
+      },
+    );
+  }
+
+  private generateRefreshToken(payload: AuthenticatedUserPayload) {
+    return this.jwtService.sign(
+      { ...payload, userId: Number(payload.userId) },
+      {
+        secret: process.env.JWT_REFRESH_SECRET,
+      expiresIn:
+        (process.env.JWT_REFRESH_EXPIRES_IN as unknown as any) ?? '7d',      
+      },
+    );
+  }
 }
