@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 ##### Base image with corepack/npm ready #####
-FROM node:20-alpine AS base
+FROM node:24-alpine AS base
 WORKDIR /app
 # OpenSSL is required by Prisma's query engine on Alpine
 RUN apk add --no-cache openssl
