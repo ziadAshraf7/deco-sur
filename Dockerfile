@@ -45,4 +45,6 @@ USER nestjs
 
 EXPOSE 8000
 
+
+ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["node", "dist/main"]
