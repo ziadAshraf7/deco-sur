@@ -9,8 +9,6 @@ import {
   ValidateNested,
   ArrayUnique,
   MinLength,
-  IsNumber,
-  Min,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { ProjectCategory, ServiceType } from '@prisma/client';

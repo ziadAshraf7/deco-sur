@@ -6,26 +6,26 @@ import { Testimonial } from '@prisma/client';
 export class TestimonialResponseDto {
   @Expose()
   @Transform(({ value }) => value?.toString())
-  id: bigint;
+  id!: bigint;
 
   @Expose()
   @Transform(({ value }) => value?.toString())
-  userId: bigint;
+  userId!: bigint;
 
   @Expose()
-  content: string;
+  content!: string;
 
   @Expose()
-  rating: number | null;
+  rating!: number | null;
 
   @Expose()
-  isFeatured: boolean;
+  isFeatured!: boolean;
 
   @Expose()
-  createdAt: Date;
+  createdAt!: Date;
 
   @Expose()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   constructor(partial: Partial<Testimonial>) {
     Object.assign(this, partial);

@@ -1,24 +1,23 @@
 import { Exclude, Expose, Transform } from 'class-transformer';
 import { Faq } from '@prisma/client';
 
-// BigInt doesn't serialize to JSON natively — expose id as a string.
 @Exclude()
 export class FaqResponseDto {
   @Expose()
   @Transform(({ value }) => value?.toString())
-  id: bigint;
+  id!: bigint;
 
   @Expose()
-  question: string;
+  question!: string;
 
   @Expose()
-  answer: string;
+  answer!: string;
 
   @Expose()
-  createdAt: Date;
+  createdAt!: Date;
 
   @Expose()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   constructor(partial: Partial<Faq>) {
     Object.assign(this, partial);
