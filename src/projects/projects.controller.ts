@@ -1,10 +1,8 @@
 import { Controller, Get, Param, Query, ParseIntPipe } from '@nestjs/common';
-import { ProjectFilterDto } from './dto/project.query.dto';
+import { BeforeAfterFilterDto, ProjectFilterDto } from './dto/project.query.dto';
 import { ProjectService } from './projects.service';
-import { Auth } from '../shared/guards/auth.decerator';
 
 @Controller('projects')
-@Auth('CLIENT' , "ADMIN")
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
 
@@ -16,6 +14,12 @@ export class ProjectController {
   @Get('featured')
   getFeatured(@Query('limit', new ParseIntPipe({ optional: true })) limit?: number) {
     return this.projectService.getFeatured(limit);
+  }
+
+
+  @Get('before-after')
+  listBeforeAfters(@Query() filter: BeforeAfterFilterDto) {
+    return this.projectService.listBeforeAfters(filter);
   }
 
   @Get(':id')

@@ -3,6 +3,8 @@ import { Auth } from '../shared/guards/auth.decerator';
 import { AdminTestimonialService } from './admin.service';
 import { QueryTestimonialDto } from './dto/query-testimonial.dto';
 import { TestimonialService } from './testimonial.service';
+import { CurrentUser } from '../shared/decerators/current_user.decerator';
+import { AuthenticatedUserPayload } from '../auth/dto/auth.dto';
 
 @Controller('admin/testimonials')
 @Auth('ADMIN')
@@ -47,9 +49,11 @@ export class AdminTestimonialController {
   @Get(':id')
   findOne(
     @Param('id') id: string,
+    @CurrentUser() user : AuthenticatedUserPayload
   ) {
     return this.testimonialService.findOne(
       BigInt(id),
+      user
     );
   }
 

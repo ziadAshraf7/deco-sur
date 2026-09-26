@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  ParseIntPipe,
   Post,
   Query,
 } from '@nestjs/common';
@@ -15,7 +16,6 @@ import { CurrentUser } from '../shared/decerators/current_user.decerator';
 import { AuthenticatedUserPayload } from '../auth/dto/auth.dto';
 
 @Controller('testimonials')
-@Auth('CLIENT')
 export class TestimonialController {
   constructor(
     private readonly testimonialService: TestimonialService,
@@ -23,21 +23,33 @@ export class TestimonialController {
 
 
   @Post()
+  @Auth('CLIENT')
   create(@Body() dto: CreateTestimonialDto , @CurrentUser() user : AuthenticatedUserPayload) {
     return this.testimonialService.create(dto,user);
   }
 
 
   @Get()
+  @Auth('CLIENT')
   findAll(@Query() query: QueryTestimonialDto , @CurrentUser() user : AuthenticatedUserPayload) {
     return this.testimonialService.findAll(query , user);
   }
 
 
+  @Get('featured')
+    findFeatured(
+      @Query('limit', new ParseIntPipe({ optional: true }))
+      limit?: number,
+    ) {
+      return this.testimonialService.findFeatured(limit);
+    }
+
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  @Auth('CLIENT')
+  findOne(@Param('id') id: string , @CurrentUser() user : AuthenticatedUserPayload) {
     return this.testimonialService.findOne(
       BigInt(id),
+      user
     );
   }
 }

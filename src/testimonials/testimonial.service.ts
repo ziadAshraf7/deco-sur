@@ -63,9 +63,9 @@ export class TestimonialService {
     };
   }
 
-  async findOne(id: bigint) {
+  async findOne(id: bigint , user : AuthenticatedUserPayload) {
     const testimonial = await this.testimonialRepository.findOneOrThrow({ id });
-
+    if((testimonial.userId !== user.userId) && user.role !== "ADMIN") throw new ForbiddenException('messages.cannotViewTestimonial');
     if (!testimonial.isApproved) {
       throw new ForbiddenException('messages.testimonialNotApproved');
     }

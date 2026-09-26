@@ -5,6 +5,7 @@ import {
   IsArray,
   IsBoolean,
   IsNotEmpty,
+  IsNumberString,
   MaxLength,
   ValidateNested,
   ArrayUnique,
@@ -20,6 +21,11 @@ function parseIfString(value: unknown) {
   } catch {
     return value;
   }
+}
+
+function toBigIntOrUndefined(value: unknown) {
+  if (value === undefined || value === null || value === '') return undefined;
+  return BigInt(value as string);
 }
 
 export class CreateProjectDto {
@@ -116,6 +122,13 @@ export class CreateBeforeAfterDto {
   @IsOptional()
   @IsString()
   description?: string;
+
+  // Optional: omit entirely to create a standalone before/after
+  // with no project attached. Provide a project id to attach it.
+  @IsOptional()
+  @IsNumberString()
+  @Transform(({ value }) => toBigIntOrUndefined(value))
+  projectId?: bigint;
 }
 
 export class AddBeforeAfterDto {
@@ -137,4 +150,11 @@ export class AddBeforeAfterDto {
   @IsOptional()
   @IsString()
   description?: string;
+
+  // Optional: omit entirely to create a standalone before/after
+  // with no project attached. Provide a project id to attach it.
+  @IsOptional()
+  @IsNumberString()
+  @Transform(({ value }) => toBigIntOrUndefined(value))
+  projectId?: bigint;
 }

@@ -4,7 +4,7 @@ import { unlink } from 'node:fs/promises';
 import { basename, resolve } from 'node:path';
 import { CreateBeforeAfterDto, CreateGalleryItemDto, CreateProjectDto } from './dto/create-project.dto';
 import { UpdateBeforeAfterDto, UpdateGalleryItemDto, UpdateProjectDto } from './dto/update-project.dto';
-import { ProjectFilterDto } from './dto/project.query.dto';
+import { BeforeAfterFilterDto, ProjectFilterDto } from './dto/project.query.dto';
 import { ProjectRepository } from './projects.repository';
 import { ProjectBeforeAfterRepository } from './repositories/project.beforeAfter.repository';
 import { ProjectGalleryRepository } from './repositories/project.gallery.repository';
@@ -238,21 +238,67 @@ async addGalleryImages(
     return removedGallery;
   }
 
+  // ---------------------------------------------------------------------
+  // BEFORE / AFTER
+  // projectId is now optional data on the DTO itself, not a required
+  // route param, so these entries can exist with or without a project.
+  // ---------------------------------------------------------------------
 
-  async addBeforeAfter(projectId: bigint, dto: CreateBeforeAfterDto) {
-    await this.projectRepository.findOneOrThrow({ id: projectId });
-    const {afterImageUrl , beforeImageUrl , ...rest } = dto
+  /**
+   * Creates a before/after entry. If dto.projectId is provided, it is
+   * validated and connected. If omitted, the entry is created standalone
+   * (no project attached) — this is what lets an admin post before/after
+   * images without picking a project.
+   */
+  async createBeforeAfter(dto: CreateBeforeAfterDto) {
+    const { projectId, beforeImageUrl, afterImageUrl, ...rest } = dto;
+
+    if (projectId) {
+      await this.projectRepository.findOneOrThrow({ id: projectId });
+    }
+
     return this.beforeAfterRepository.create({
       ...rest,
-      afterImageUrl : afterImageUrl!  , 
-      beforeImageUrl : beforeImageUrl! , 
-      project : {connect : {id : projectId}}
+      beforeImageUrl: beforeImageUrl!,
+      afterImageUrl: afterImageUrl!,
+      ...(projectId && { project: { connect: { id: projectId } } }),
     });
   }
 
+  /**
+   * Kept for the project-scoped route (POST /projects/:id/before-after).
+   * Just forces projectId to the one in the URL and delegates.
+   */
+  async addBeforeAfter(projectId: bigint, dto: CreateBeforeAfterDto) {
+    return this.createBeforeAfter({ ...dto, projectId });
+  }
+
+  /**
+   * Update a before/after entry. Supports attaching, reattaching, or
+   * detaching from a project via dto.projectId:
+   *   - omitted -> projectId left untouched
+   *   - a valid id -> validated and (re)connected
+   *   - null -> disconnected, entry becomes standalone
+   */
   async updateBeforeAfter(id: bigint, dto: UpdateBeforeAfterDto) {
     const beforeAfter = await this.beforeAfterRepository.findOneOrThrow({ id });
-    const updated = await this.beforeAfterRepository.update({ where: { id }, data: dto });
+    const { projectId, ...rest } = dto;
+    const projectIdProvided = Object.prototype.hasOwnProperty.call(dto, 'projectId');
+
+    if (projectId) {
+      await this.projectRepository.findOneOrThrow({ id: projectId });
+    }
+
+    const data: Prisma.ProjectBeforeAfterUpdateInput = {
+      ...rest,
+      ...(projectIdProvided && {
+        project: projectId
+          ? { connect: { id: projectId } }
+          : { disconnect: true },
+      }),
+    };
+
+    const updated = await this.beforeAfterRepository.update({ where: { id }, data });
 
     if (
       dto.beforeImageUrl &&
@@ -279,6 +325,37 @@ async addGalleryImages(
       this.removeFile(beforeAfter.afterImageUrl),
     ]);
     return removedBeforeAfter;
+  }
+
+
+  async listBeforeAfters(filter: BeforeAfterFilterDto) {
+    const { page, limit, projectId, standalone } = filter;
+
+    const where: Prisma.ProjectBeforeAfterWhereInput = standalone
+      ? { projectId: null }
+      : projectId !== undefined
+        ? { projectId }
+        : {};
+
+    const [data, total] = await Promise.all([
+      this.beforeAfterRepository.findAll({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.beforeAfterRepository.count(where),
+    ]);
+
+    return {
+      data,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async removeFile(fileUrl?: string) {

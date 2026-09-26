@@ -69,7 +69,6 @@ model User {
 
 // =========================================================
 // PROJECTS
-// (status and project_date removed per request)
 // =========================================================
 
 model Project {
@@ -110,19 +109,22 @@ model ProjectGallery {
 
 // =========================================================
 // PROJECT BEFORE / AFTER
+// Now standalone-capable: projectId is optional so admins can
+// create before/after entries without attaching them to a project.
 // =========================================================
 
 model ProjectBeforeAfter {
   id             BigInt   @id @default(autoincrement())
-  projectId      BigInt   @map("project_id")
+  projectId      BigInt?  @map("project_id")
   beforeImageUrl String   @map("before_image_url") @db.Text
   afterImageUrl  String   @map("after_image_url") @db.Text
   title          String?  @db.VarChar(255)
   description    String?  @db.Text
   createdAt      DateTime @default(now()) @map("created_at")
 
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
+  @@index([projectId])
   @@map("project_before_after")
 }
 
