@@ -6,6 +6,8 @@ import { AuthModule } from './auth/auth.module';
 import { ProjectsModule } from './projects/projects.module';
 import { TestimonialModule } from './testimonials/testimonials.module';
 import { FaqModule } from './faq/faq.module';
+import { InquiriesModule } from './inquiries/inquiries.module';
+import { ServicesModule } from './services/services.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { I18nModule, QueryResolver, AcceptLanguageResolver } from 'nestjs-i18n';
 import path from 'path';
@@ -35,7 +37,15 @@ import path from 'path';
         limit: 100,
       },
     ]),
-    PrismaModule, UsersModule, AuthModule, ProjectsModule, TestimonialModule, FaqModule],
+    PrismaModule,
+    UsersModule,
+    AuthModule,
+    ProjectsModule,
+    TestimonialModule,
+    FaqModule,
+    InquiriesModule,
+    ServicesModule,
+  ],
   controllers: [AppController],
 })
 export class AppModule {}

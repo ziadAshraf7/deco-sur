@@ -42,6 +42,7 @@ enum ServiceType {
   FULL_INTERIOR_RENOVATION
 }
 
+
 // =========================================================
 // USERS
 // =========================================================
@@ -160,3 +161,23 @@ model Testimonial {
 
   @@map("testimonials")
 }
+
+model Service {
+  id             BigInt      @id @default(autoincrement())
+  type           ServiceType @unique
+  slug           String      @unique @db.VarChar(255)
+  titleEn        String      @map("title_en") @db.VarChar(255)
+  titleFr        String      @map("title_fr") @db.VarChar(255)
+  excerptEn      String?     @map("excerpt_en") @db.VarChar(500)
+  excerptFr      String?     @map("excerpt_fr") @db.VarChar(500)
+  descriptionEn  String      @map("description_en") @db.Text
+  descriptionFr  String      @map("description_fr") @db.Text
+  imageUrl       String?     @map("image_url") @db.Text
+  isActive       Boolean     @default(true) @map("is_active")
+  sortOrder      Int         @default(0) @map("sort_order")
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  @@map("services")
+}
+
